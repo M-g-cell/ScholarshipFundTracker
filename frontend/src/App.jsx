@@ -104,6 +104,68 @@ const deleteExpense = async (id) => {
   }
 };
 
+const editScholarship = async (item) => {
+
+  const newSource = prompt(
+    "Enter Scholarship Source",
+    item.source
+  );
+
+  const newAmount = prompt(
+    "Enter Scholarship Amount",
+    item.amount
+  );
+
+  const newDate = prompt(
+    "Enter Scholarship Date",
+    item.date
+  );
+
+  if (!newSource || !newAmount || !newDate) return;
+
+  await axios.put(
+    `http://localhost:8000/scholarship/${item._id}`,
+    {
+      source: newSource,
+      amount: Number(newAmount),
+      date: newDate,
+    }
+  );
+
+  loadData();
+};
+
+const editExpense = async (item) => {
+
+  const newCategory = prompt(
+    "Enter Expense Category",
+    item.category
+  );
+
+  const newAmount = prompt(
+    "Enter Expense Amount",
+    item.amount
+  );
+
+  const newDate = prompt(
+    "Enter Expense Date",
+    item.date
+  );
+
+  if (!newCategory || !newAmount || !newDate) return;
+
+  await axios.put(
+    `http://localhost:8000/expense/${item._id}`,
+    {
+      category: newCategory,
+      amount: Number(newAmount),
+      date: newDate,
+    }
+  );
+
+  loadData();
+};
+
 
   const filteredScholarships = scholarships.filter((s) =>
     s.source?.toLowerCase().includes(search.toLowerCase())
@@ -267,6 +329,12 @@ const COLORS = [
                 <td>{item.date}</td>
                 <td>
   <button
+    onClick={() => editScholarship(item)}
+  >
+    Edit
+  </button>
+
+  <button
     onClick={() => deleteScholarship(item._id)}
   >
     Delete
@@ -296,6 +364,12 @@ const COLORS = [
                 <td>₹{item.amount}</td>
                 <td>{item.date}</td>
                 <td>
+  <button
+    onClick={() => editExpense(item)}
+  >
+    Edit
+  </button>
+
   <button
     onClick={() => deleteExpense(item._id)}
   >
