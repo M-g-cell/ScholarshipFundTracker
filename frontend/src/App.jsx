@@ -2,6 +2,15 @@ import "./App.css";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
 function App() {
   const [summary, setSummary] = useState({
     total_scholarship: 0,
@@ -33,6 +42,8 @@ function App() {
         axios.get("http://localhost:8000/expenses"),
       ]);
 
+      console.log(summaryRes.data);
+
       setSummary(summaryRes.data);
       setScholarships(scholarshipRes.data);
       setExpenses(expenseRes.data);
@@ -59,6 +70,7 @@ function App() {
   };
 
   const addExpense = async () => {
+
     await axios.post("http://localhost:8000/expense", {
       category: expense.category,
       amount: Number(expense.amount),
@@ -68,6 +80,7 @@ function App() {
     setExpense({ category: "", amount: "", date: "" });
     loadData();
   };
+
 
   const filteredScholarships = scholarships.filter((s) =>
     s.source?.toLowerCase().includes(search.toLowerCase())
@@ -79,6 +92,27 @@ function App() {
 
   const goalTarget = 500000;
   const goalPercent = ((summary.balance / goalTarget) * 100).toFixed(2);
+
+  const chartData = [
+  {
+    name: "Scholarship",
+    value: summary.total_scholarship,
+  },
+  {
+    name: "Expenses",
+    value: summary.total_expenses,
+  },
+  {
+    name: "Balance",
+    value: summary.balance,
+  },
+];
+
+const COLORS = [
+  "#22c55e",
+  "#ef4444",
+  "#3b82f6",
+];
 
   return (
     <div className="container">
@@ -114,6 +148,46 @@ function App() {
         <h3>{goalPercent}% Complete</h3>
         <p>Remaining: ₹{goalTarget - summary.balance}</p>
       </div>
+
+      <div
+  className="card"
+  style={{
+    maxWidth: "900px",
+    margin: "30px auto",
+  }}
+>
+  <h2>📊 Financial Analytics</h2>
+
+  <div
+    style={{
+      width: "100%",
+      height: "350px",
+    }}
+  >
+    <ResponsiveContainer>
+      <PieChart>
+        <Pie
+          data={chartData}
+          cx="50%"
+          cy="50%"
+          outerRadius={120}
+          dataKey="value"
+          label
+        >
+          {chartData.map((entry, index) => (
+            <Cell
+              key={index}
+              fill={COLORS[index % COLORS.length]}
+            />
+          ))}
+        </Pie>
+
+        <Tooltip />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
+  </div>
+</div>
 
       <div style={{ margin: "30px 0" }}>
         <input
@@ -159,6 +233,7 @@ function App() {
               <th>Source</th>
               <th>Amount</th>
               <th>Date</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -167,6 +242,13 @@ function App() {
                 <td>{item.source}</td>
                 <td>₹{item.amount}</td>
                 <td>{item.date}</td>
+                <td>
+  <button
+    onClick={() => deleteScholarship(item._id)}
+  >
+    Delete
+  </button>
+</td>
               </tr>
             ))}
           </tbody>
@@ -181,6 +263,7 @@ function App() {
               <th>Category</th>
               <th>Amount</th>
               <th>Date</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -189,6 +272,13 @@ function App() {
                 <td>{item.category}</td>
                 <td>₹{item.amount}</td>
                 <td>{item.date}</td>
+                <td>
+  <button
+    onClick={() => deleteExpense(item._id)}
+  >
+    Delete
+  </button>
+</td>
               </tr>
             ))}
           </tbody>
