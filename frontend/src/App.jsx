@@ -80,6 +80,29 @@ function App() {
     setExpense({ category: "", amount: "", date: "" });
     loadData();
   };
+  const deleteScholarship = async (id) => {
+  try {
+    await axios.delete(
+      `http://localhost:8000/scholarship/${id}`
+    );
+
+    loadData();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const deleteExpense = async (id) => {
+  try {
+    await axios.delete(
+      `http://localhost:8000/expense/${id}`
+    );
+
+    loadData();
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 
   const filteredScholarships = scholarships.filter((s) =>

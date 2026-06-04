@@ -1,7 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
-from database import scholarships_collection , expenses_collection , goals_collection
-from models import Scholarship , Expense , Goal
+from database import scholarships_collection, expenses_collection, goals_collection
+from models import Scholarship, Expense, Goal
 from bson import ObjectId
 
 app = FastAPI()
@@ -14,11 +14,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 def home():
     return {
         "message": "Scholarship Fund Tracker API Running"
     }
+
+
+# =========================
+# SCHOLARSHIPS
+# =========================
 
 @app.post("/scholarship")
 def add_scholarship(scholarship: Scholarship):
@@ -43,6 +49,22 @@ def get_scholarships():
 
     return scholarships
 
+
+@app.put("/scholarship/{id}")
+def update_scholarship(id: str, scholarship: Scholarship):
+
+    scholarships_collection.update_one(
+        {"_id": ObjectId(id)},
+        {
+            "$set": scholarship.dict()
+        }
+    )
+
+    return {
+        "message": "Scholarship Updated"
+    }
+
+
 @app.delete("/scholarship/{id}")
 def delete_scholarship(id: str):
 
@@ -53,6 +75,12 @@ def delete_scholarship(id: str):
     return {
         "message": "Scholarship Deleted"
     }
+
+
+# =========================
+# EXPENSES
+# =========================
+
 @app.post("/expense")
 def add_expense(expense: Expense):
 
@@ -63,6 +91,8 @@ def add_expense(expense: Expense):
     return {
         "message": "Expense Added Successfully"
     }
+
+
 @app.get("/expenses")
 def get_expenses():
 
@@ -74,6 +104,22 @@ def get_expenses():
 
     return expenses
 
+
+@app.put("/expense/{id}")
+def update_expense(id: str, expense: Expense):
+
+    expenses_collection.update_one(
+        {"_id": ObjectId(id)},
+        {
+            "$set": expense.dict()
+        }
+    )
+
+    return {
+        "message": "Expense Updated"
+    }
+
+
 @app.delete("/expense/{id}")
 def delete_expense(id: str):
 
@@ -84,6 +130,12 @@ def delete_expense(id: str):
     return {
         "message": "Expense Deleted"
     }
+
+
+# =========================
+# SUMMARY
+# =========================
+
 @app.get("/summary")
 def get_summary():
 
@@ -111,6 +163,11 @@ def get_summary():
         "balance": balance
     }
 
+
+# =========================
+# GOALS
+# =========================
+
 @app.post("/goal")
 def add_goal(goal: Goal):
 
@@ -121,6 +178,7 @@ def add_goal(goal: Goal):
     return {
         "message": "Goal Added Successfully"
     }
+
 
 @app.get("/goal-progress")
 def goal_progress():
@@ -134,6 +192,11 @@ def goal_progress():
     )
 
     goal = goals_collection.find_one({}, {"_id": 0})
+
+    if not goal:
+        return {
+            "message": "No Goal Found"
+        }
 
     total_scholarship = sum(
         item["amount"] for item in scholarships
