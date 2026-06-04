@@ -1,5 +1,10 @@
 from pymongo import MongoClient
-client = MongoClient("mongodb+srv://harshalisonawane76_db_user:WzjjwXK5sYkDNWxz@cluster0.7utcutg.mongodb.net/?appName=Cluster0")
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+client = MongoClient(os.getenv("MONGO_URI"))
 
 db = client["scholarship_tracker"]
 
