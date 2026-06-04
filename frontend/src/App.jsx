@@ -1,3 +1,4 @@
+import "./App.css";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -7,6 +8,10 @@ function App() {
     total_expenses: 0,
     balance: 0,
   });
+
+  const [scholarships, setScholarships] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [search, setSearch] = useState("");
 
   const [scholarship, setScholarship] = useState({
     source: "",
@@ -20,221 +25,174 @@ function App() {
     date: "",
   });
 
-  const loadSummary = async () => {
+  const loadData = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/summary");
-console.log("DATA:", res.data);
-      setSummary(res.data);
+      const [summaryRes, scholarshipRes, expenseRes] = await Promise.all([
+        axios.get("http://localhost:8000/summary"),
+        axios.get("http://localhost:8000/scholarships"),
+        axios.get("http://localhost:8000/expenses"),
+      ]);
+
+      setSummary(summaryRes.data);
+      setScholarships(scholarshipRes.data);
+      setExpenses(expenseRes.data);
     } catch (error) {
-      console.log("Summary Error:", error);
+      console.log(error);
     }
   };
 
   useEffect(() => {
-    loadSummary();
-
-    const interval = setInterval(() => {
-      loadSummary();
-    }, 2000);
-
+    loadData();
+    const interval = setInterval(loadData, 3000);
     return () => clearInterval(interval);
   }, []);
 
   const addScholarship = async () => {
-    try {
-      await axios.post("http://127.0.0.1:8000/scholarship", {
-        source: scholarship.source,
-        amount: Number(scholarship.amount),
-        date: scholarship.date,
-      });
+    await axios.post("http://localhost:8000/scholarship", {
+      source: scholarship.source,
+      amount: Number(scholarship.amount),
+      date: scholarship.date,
+    });
 
-      loadSummary();
-
-      setScholarship({
-        source: "",
-        amount: "",
-        date: "",
-      });
-    } catch (error) {
-      console.log(error);
-    }
+    setScholarship({ source: "", amount: "", date: "" });
+    loadData();
   };
 
   const addExpense = async () => {
-    try {
-      await axios.post("http://127.0.0.1:8000/expense", {
-        category: expense.category,
-        amount: Number(expense.amount),
-        date: expense.date,
-      });
+    await axios.post("http://localhost:8000/expense", {
+      category: expense.category,
+      amount: Number(expense.amount),
+      date: expense.date,
+    });
 
-      loadSummary();
-
-      setExpense({
-        category: "",
-        amount: "",
-        date: "",
-      });
-    } catch (error) {
-      console.log(error);
-    }
+    setExpense({ category: "", amount: "", date: "" });
+    loadData();
   };
 
-  return (
-    <div
-      style={{
-        backgroundColor: "#111",
-        color: "white",
-        minHeight: "100vh",
-        padding: "30px",
-        textAlign: "center",
-      }}
-    >
-      <h1>🎓 Scholarship Fund Tracker</h1>
+  const filteredScholarships = scholarships.filter((s) =>
+    s.source?.toLowerCase().includes(search.toLowerCase())
+  );
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "20px",
-          marginTop: "30px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div
-          style={{
-            border: "1px solid gray",
-            padding: "20px",
-            width: "220px",
-          }}
-        >
+  const filteredExpenses = expenses.filter((e) =>
+    e.category?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const goalTarget = 500000;
+  const goalPercent = ((summary.balance / goalTarget) * 100).toFixed(2);
+
+  return (
+    <div className="container">
+      <h1>🎓 Scholarship Fund Tracker</h1>
+      <p>Track • Save • Achieve Your Master's Goal</p>
+
+      <div className="cards">
+        <div className="card">
           <h3>💰 Scholarship</h3>
           <h2>₹{summary.total_scholarship}</h2>
         </div>
 
-        <div
-          style={{
-            border: "1px solid gray",
-            padding: "20px",
-            width: "220px",
-          }}
-        >
+        <div className="card">
           <h3>📉 Expenses</h3>
           <h2>₹{summary.total_expenses}</h2>
         </div>
 
-        <div
-          style={{
-            border: "1px solid gray",
-            padding: "20px",
-            width: "220px",
-          }}
-        >
+        <div className="card">
           <h3>🏦 Balance</h3>
           <h2>₹{summary.balance}</h2>
         </div>
+
+        <div className="card">
+          <h3>🎯 Goal %</h3>
+          <h2>{goalPercent}%</h2>
+        </div>
       </div>
 
-      <div style={{ marginTop: "50px" }}>
+      <div className="card" style={{ maxWidth: "800px", margin: "30px auto" }}>
+        <h2>🎯 Master's Goal</h2>
+        <p>Target: ₹5,00,000</p>
+        <progress value={summary.balance} max={goalTarget} style={{ width: "100%" }} />
+        <h3>{goalPercent}% Complete</h3>
+        <p>Remaining: ₹{goalTarget - summary.balance}</p>
+      </div>
+
+      <div style={{ margin: "30px 0" }}>
+        <input
+          placeholder="🔍 Search scholarships or expenses"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      <div className="form-section">
         <h2>Add Scholarship</h2>
-
-        <input
-          placeholder="Source"
-          value={scholarship.source}
-          onChange={(e) =>
-            setScholarship({
-              ...scholarship,
-              source: e.target.value,
-            })
-          }
-        />
-
-        <br />
-        <br />
-
-        <input
-          placeholder="Amount"
-          type="number"
-          value={scholarship.amount}
-          onChange={(e) =>
-            setScholarship({
-              ...scholarship,
-              amount: e.target.value,
-            })
-          }
-        />
-
-        <br />
-        <br />
-
-        <input
-          type="date"
-          value={scholarship.date}
-          onChange={(e) =>
-            setScholarship({
-              ...scholarship,
-              date: e.target.value,
-            })
-          }
-        />
-
-        <br />
-        <br />
-
-        <button onClick={addScholarship}>
-          Add Scholarship
-        </button>
+        <input placeholder="Source" value={scholarship.source}
+          onChange={(e) => setScholarship({ ...scholarship, source: e.target.value })} />
+        <br /><br />
+        <input placeholder="Amount" type="number" value={scholarship.amount}
+          onChange={(e) => setScholarship({ ...scholarship, amount: e.target.value })} />
+        <br /><br />
+        <input type="date" value={scholarship.date}
+          onChange={(e) => setScholarship({ ...scholarship, date: e.target.value })} />
+        <br /><br />
+        <button onClick={addScholarship}>Add Scholarship</button>
       </div>
 
-      <div style={{ marginTop: "50px" }}>
+      <div className="form-section">
         <h2>Add Expense</h2>
+        <input placeholder="Category" value={expense.category}
+          onChange={(e) => setExpense({ ...expense, category: e.target.value })} />
+        <br /><br />
+        <input placeholder="Amount" type="number" value={expense.amount}
+          onChange={(e) => setExpense({ ...expense, amount: e.target.value })} />
+        <br /><br />
+        <input type="date" value={expense.date}
+          onChange={(e) => setExpense({ ...expense, date: e.target.value })} />
+        <br /><br />
+        <button onClick={addExpense}>Add Expense</button>
+      </div>
 
-        <input
-          placeholder="Category"
-          value={expense.category}
-          onChange={(e) =>
-            setExpense({
-              ...expense,
-              category: e.target.value,
-            })
-          }
-        />
+      <div className="card" style={{ width: "90%", margin: "40px auto" }}>
+        <h2>📋 Scholarship History</h2>
+        <table style={{ width: "100%" }}>
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Amount</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredScholarships.map((item, index) => (
+              <tr key={index}>
+                <td>{item.source}</td>
+                <td>₹{item.amount}</td>
+                <td>{item.date}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-        <br />
-        <br />
-
-        <input
-          placeholder="Amount"
-          type="number"
-          value={expense.amount}
-          onChange={(e) =>
-            setExpense({
-              ...expense,
-              amount: e.target.value,
-            })
-          }
-        />
-
-        <br />
-        <br />
-
-        <input
-          type="date"
-          value={expense.date}
-          onChange={(e) =>
-            setExpense({
-              ...expense,
-              date: e.target.value,
-            })
-          }
-        />
-
-        <br />
-        <br />
-
-        <button onClick={addExpense}>
-          Add Expense
-        </button>
+      <div className="card" style={{ width: "90%", margin: "40px auto" }}>
+        <h2>📋 Expense History</h2>
+        <table style={{ width: "100%" }}>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredExpenses.map((item, index) => (
+              <tr key={index}>
+                <td>{item.category}</td>
+                <td>₹{item.amount}</td>
+                <td>{item.date}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
