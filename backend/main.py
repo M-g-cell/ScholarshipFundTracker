@@ -2,6 +2,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from database import scholarships_collection , expenses_collection , goals_collection
 from models import Scholarship , Expense , Goal
+from bson import ObjectId
 
 app = FastAPI()
 
@@ -34,11 +35,24 @@ def add_scholarship(scholarship: Scholarship):
 @app.get("/scholarships")
 def get_scholarships():
 
-    scholarships = list(
-        scholarships_collection.find({}, {"_id": 0})
-    )
+    scholarships = []
+
+    for item in scholarships_collection.find():
+        item["_id"] = str(item["_id"])
+        scholarships.append(item)
 
     return scholarships
+
+@app.delete("/scholarship/{id}")
+def delete_scholarship(id: str):
+
+    scholarships_collection.delete_one(
+        {"_id": ObjectId(id)}
+    )
+
+    return {
+        "message": "Scholarship Deleted"
+    }
 @app.post("/expense")
 def add_expense(expense: Expense):
 
@@ -52,11 +66,24 @@ def add_expense(expense: Expense):
 @app.get("/expenses")
 def get_expenses():
 
-    expenses = list(
-        expenses_collection.find({}, {"_id": 0})
-    )
+    expenses = []
+
+    for item in expenses_collection.find():
+        item["_id"] = str(item["_id"])
+        expenses.append(item)
 
     return expenses
+
+@app.delete("/expense/{id}")
+def delete_expense(id: str):
+
+    expenses_collection.delete_one(
+        {"_id": ObjectId(id)}
+    )
+
+    return {
+        "message": "Expense Deleted"
+    }
 @app.get("/summary")
 def get_summary():
 
