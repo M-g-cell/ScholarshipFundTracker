@@ -12,6 +12,8 @@ import {
 } from "recharts";
 
 function App() {
+  const isLoggedIn =
+  localStorage.getItem("isLoggedIn");
   const [summary, setSummary] = useState({
     total_scholarship: 0,
     total_expenses: 0,
@@ -198,12 +200,52 @@ const COLORS = [
   "#ef4444",
   "#3b82f6",
 ];
-
+// if (!isLoggedIn) {
+//   window.location.href = "/login";
+//   return null;
+// }
   return (
     <div className="container">
-      <h1>🎓 Scholarship Fund Tracker</h1>
-      <p>Track • Save • Achieve Your Master's Goal</p>
+    <div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "90%",
+    margin: "20px auto",
+  }}
+>
+  <h1>🎓 Scholarship Fund Tracker</h1>
 
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "15px",
+    }}
+  >
+    <span
+      style={{
+        fontSize: "18px",
+        fontWeight: "bold",
+      }}
+    >
+      👤 Harshali
+    </span>
+
+    <button
+      onClick={() => {
+        localStorage.removeItem("isLoggedIn");
+        window.location.href = "/login";
+      }}
+    >
+      🚪 Logout
+    </button>
+  </div>
+</div>
+
+<p>Track • Save • Achieve Your Master's Goal</p>
+      
       <div className="cards">
         <div className="card">
           <h3>💰 Scholarship</h3>
