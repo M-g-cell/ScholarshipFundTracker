@@ -12,6 +12,8 @@ import {
 } from "recharts";
 
 function App() {
+  const username =
+  localStorage.getItem("username");
   const isLoggedIn =
   localStorage.getItem("isLoggedIn");
   const [summary, setSummary] = useState({
@@ -39,11 +41,14 @@ function App() {
   const loadData = async () => {
     try {
       const [summaryRes, scholarshipRes, expenseRes] = await Promise.all([
-        axios.get("http://localhost:8000/summary"),
-        axios.get("http://localhost:8000/scholarships"),
-        axios.get("http://localhost:8000/expenses"),
-      ]);
-
+  axios.get("http://localhost:8000/summary"),
+  axios.get(
+    `http://localhost:8000/scholarships/${username}`
+  ),
+  axios.get(
+    `http://localhost:8000/expenses/${username}`
+  ),
+]);
       console.log(summaryRes.data);
 
       setSummary(summaryRes.data);
@@ -61,33 +66,48 @@ function App() {
   }, []);
 
   const addScholarship = async () => {
-    await axios.post("http://localhost:8000/scholarship", {
-      source: scholarship.source,
-      amount: Number(scholarship.amount),
-      date: scholarship.date,
-    });
+   await axios.post(
+  "http://localhost:8000/scholarship",
+  {
+    source: scholarship.source,
+    amount: Number(scholarship.amount),
+    date: scholarship.date,
+    username: localStorage.getItem("username"),
+  }
+);
 
     setScholarship({ source: "", amount: "", date: "" });
+    alert("Scholarship Added Successfully ✅");
     loadData();
   };
 
   const addExpense = async () => {
 
-    await axios.post("http://localhost:8000/expense", {
-      category: expense.category,
-      amount: Number(expense.amount),
-      date: expense.date,
-    });
+   await axios.post(
+  "http://localhost:8000/expense",
+  {
+    category: expense.category,
+    amount: Number(expense.amount),
+    date: expense.date,
+    username: localStorage.getItem("username"),
+  }
+);
 
     setExpense({ category: "", amount: "", date: "" });
+    alert("Expense Added Successfully ✅");
     loadData();
   };
   const deleteScholarship = async (id) => {
+    const confirmDelete = window.confirm(
+  "Delete this scholarship?"
+);
+
+if (!confirmDelete) return;
   try {
     await axios.delete(
       `http://localhost:8000/scholarship/${id}`
     );
-
+alert("Scholarship Deleted Successfully ✅");
     loadData();
   } catch (error) {
     console.log(error);
@@ -128,13 +148,17 @@ const editScholarship = async (item) => {
   await axios.put(
     `http://localhost:8000/scholarship/${item._id}`,
     {
-      source: newSource,
-      amount: Number(newAmount),
-      date: newDate,
-    }
+  source: newSource,
+  amount: Number(newAmount),
+  date: newDate,
+  username: localStorage.getItem("username"),
+}
+     
   );
-
+console.log("EDIT SUCCESS");
+alert("Scholarship Updated Successfully ✅");
   loadData();
+  console.log("AFTER LOADDATA");
 };
 
 const editExpense = async (item) => {
@@ -159,10 +183,11 @@ const editExpense = async (item) => {
   await axios.put(
     `http://localhost:8000/expense/${item._id}`,
     {
-      category: newCategory,
-      amount: Number(newAmount),
-      date: newDate,
-    }
+  category: newCategory,
+  amount: Number(newAmount),
+  date: newDate,
+  username: localStorage.getItem("username"),
+}
   );
 
   loadData();
@@ -211,11 +236,26 @@ const COLORS = [
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "90%",
+    width: "95%",
+    flexWrap: "wrap",
+    gap: "20px",
     margin: "20px auto",
   }}
 >
-  <h1>🎓 Scholarship Fund Tracker</h1>
+<h1
+  style={{
+    fontSize: "28px",
+    fontWeight: "bold",
+    background:
+      "linear-gradient(90deg,#38bdf8,#22c55e)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    margin: 0,
+    paddingLeft: "20px",
+  }}
+>
+  🎓 Scholarship Fund Tracker
+</h1>
 
   <div
     style={{
@@ -230,22 +270,79 @@ const COLORS = [
         fontWeight: "bold",
       }}
     >
-      👤 Harshali
+      👤 {username}
     </span>
 
     <button
-      onClick={() => {
-        localStorage.removeItem("isLoggedIn");
-        window.location.href = "/login";
-      }}
+     onClick={() => {
+  localStorage.removeItem("isLoggedIn");
+  localStorage.removeItem("username");
+  window.location.href = "/login";
+}}
     >
       🚪 Logout
     </button>
   </div>
 </div>
+<div
+  style={{
+    textAlign: "center",
+    marginTop: "20px",
+    marginBottom: "40px",
+    width: "100%",
+  }}
+>
+  <h2
+    style={{
+      color: "#38bdf8",
+      fontSize: "26px",
+      marginBottom: "10px",
+    }}
+  >
+    Welcome back, {username} 👋
+  </h2>
 
-<p>Track • Save • Achieve Your Master's Goal</p>
-      
+  <div
+    style={{
+      display: "inline-block",
+      padding: "15px 30px",
+      borderRadius: "15px",
+      background: "rgba(255,255,255,0.08)",
+      backdropFilter: "blur(15px)",
+    }}
+  >
+    <h3
+      style={{
+        color: "#22c55e",
+        margin: 0,
+      }}
+    >
+      💰 Current Savings
+    </h3>
+
+    <h1
+  style={{
+    color: "#38bdf8",
+    marginTop: "8px",
+    marginBottom: "0",
+    fontSize: "42px",
+    fontWeight: "bold",
+    lineHeight: "1",
+  }}
+>
+  ₹{summary.balance}
+</h1>
+  </div>
+
+  <p
+    style={{
+      marginTop: "15px",
+      color: "#cbd5e1",
+    }}
+  >
+    Track • Save • Achieve Your Master's Goal
+  </p>
+</div>
       <div className="cards">
         <div className="card">
           <h3>💰 Scholarship</h3>

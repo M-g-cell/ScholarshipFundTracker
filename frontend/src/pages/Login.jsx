@@ -18,20 +18,9 @@ function Login() {
 
       console.log("LOGIN WORKED");
       console.log("REDIRECTING...");
-
-localStorage.setItem(
-  "isLoggedIn",
-  "true"
-);
-
+localStorage.setItem("isLoggedIn", "true");
+localStorage.setItem("username", user.username);
 window.location.replace("/");
-
-      localStorage.setItem(
-        "isLoggedIn",
-        "true"
-      );
-
-      window.location.replace("/");
 
     } catch (error) {
       alert("Invalid Credentials");
