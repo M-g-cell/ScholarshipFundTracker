@@ -3,8 +3,16 @@ from fastapi import FastAPI
 from database import scholarships_collection, expenses_collection, goals_collection
 from models import Scholarship, Expense, Goal
 from bson import ObjectId
+from database import users_collection
+from models import User
+
+from passlib.context import CryptContext
 
 app = FastAPI()
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,18 +46,18 @@ def add_scholarship(scholarship: Scholarship):
     }
 
 
-@app.get("/scholarships")
-def get_scholarships():
+@app.get("/scholarships/{username}")
+def get_scholarships(username: str):
 
     scholarships = []
 
-    for item in scholarships_collection.find():
+    for item in scholarships_collection.find(
+        {"username": username}
+    ):
         item["_id"] = str(item["_id"])
         scholarships.append(item)
 
     return scholarships
-
-
 @app.put("/scholarship/{id}")
 def update_scholarship(id: str, scholarship: Scholarship):
 
@@ -93,12 +101,14 @@ def add_expense(expense: Expense):
     }
 
 
-@app.get("/expenses")
-def get_expenses():
+@app.get("/expenses/{username}")
+def get_expenses(username: str):
 
     expenses = []
 
-    for item in expenses_collection.find():
+    for item in expenses_collection.find(
+        {"username": username}
+    ):
         item["_id"] = str(item["_id"])
         expenses.append(item)
 
@@ -217,4 +227,53 @@ def goal_progress():
         "target_amount": goal["target_amount"],
         "current_savings": balance,
         "progress_percent": round(progress, 2)
+    }
+@app.post("/signup")
+def signup(user: User):
+
+    existing_user = users_collection.find_one(
+        {"username": user.username}
+    )
+
+    if existing_user:
+        return {
+            "message": "Username already exists"
+        }
+
+    hashed_password = pwd_context.hash(
+        user.password
+    )
+
+    users_collection.insert_one(
+        {
+            "username": user.username,
+            "password": hashed_password
+        }
+    )
+
+    return {
+        "message": "User registered successfully"
+    }
+@app.post("/login")
+def login(user: User):
+
+    db_user = users_collection.find_one(
+        {"username": user.username}
+    )
+
+    if not db_user:
+        return {
+            "message": "User not found"
+        }
+
+    if not pwd_context.verify(
+        user.password,
+        db_user["password"]
+    ):
+        return {
+            "message": "Invalid password"
+        }
+
+    return {
+        "message": "Login Successful"
     }
