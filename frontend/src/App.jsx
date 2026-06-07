@@ -225,10 +225,10 @@ const COLORS = [
   "#ef4444",
   "#3b82f6",
 ];
-// if (!isLoggedIn) {
-//   window.location.href = "/login";
-//   return null;
-// }
+if (!isLoggedIn) {
+  window.location.href = "/login";
+  return null;
+}
   return (
     <div className="container">
     <div
