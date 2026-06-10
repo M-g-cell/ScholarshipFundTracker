@@ -12,7 +12,7 @@ function Signup() {
     try {
 
       const res = await axios.post(
-        "http://localhost:8000/signup",
+        "http://13.201.27.55:8000/signup"
         user
       );
 
