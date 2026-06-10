@@ -10,7 +10,7 @@ function Login() {
   const login = async () => {
     try {
       const res = await axios.post(
-        "http://13.201.27.55:8000/login"
+        "http://13.201.27.55:8000/login",
         user
       );
 
